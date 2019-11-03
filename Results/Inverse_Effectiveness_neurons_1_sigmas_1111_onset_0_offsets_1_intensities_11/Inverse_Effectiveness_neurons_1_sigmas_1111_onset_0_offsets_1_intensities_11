@@ -1,0 +1,19 @@
+Inverse_Effectiveness
+ 
+Sensory Intensity Audio  : [0.  0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1. ]
+Sensory Intensity Video  : [0.  0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1. ]
+Cortical Intensity Audio : [0.  0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1. ]
+Cortical Intensity Video : [0.  0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1. ]
+
+ 
+Sensory Audio Sigma  : 1
+Sensory Video Sigma  : 1
+Cortical Audio Sigma : 1
+Cortical Video Sigma : 1
+
+ 
+Conditions to test : [0, 1, 2, 3, 4, 5, 6]
+
+ 
+Spatial Onset : 0
+Spatial Offset : [0]
