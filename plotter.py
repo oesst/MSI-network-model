@@ -74,33 +74,33 @@ class Plotter(object):
             # combined response cortical feedback off
             if 0 in conditions_to_test:
                 # combined response cortical feedback off
-                cr_all_off = net_out[i_offset, :, 0, x_location]
+                cr_all_off = net_out[i_offset, :, conditions_to_test.index(0), x_location]
                 ax.plot(sensory_intensities, cr_all_off, color='black',
                         marker='o', label='Cortical Feedback OFF')
 
             if 1 in conditions_to_test:
                 # combined response cortical feedback on
-                cr_all_on = net_out[i_offset, :, 1, x_location]
+                cr_all_on = net_out[i_offset, :, conditions_to_test.index(1), x_location]
                 ax.plot(sensory_intensities, cr_all_on, color='C1',
                         marker='o', label='Cortical Feedback ON')
                 # #combined response visual cortical feedback off
             if 2 in conditions_to_test:
-                cr_vis_off = net_out[i_offset, :, 2, x_location]
+                cr_vis_off = net_out[i_offset, :, conditions_to_test.index(2), x_location]
                 ax.plot(sensory_intensities, cr_vis_off, color='C6',
                         marker='o', label='Bimodal Stimuli, Visual Feedback OFF')
             if 3 in conditions_to_test:
                 # #combined response auditory cortical feedback off
-                cr_aud_off = net_out[i_offset, :, 3, x_location]
+                cr_aud_off = net_out[i_offset, :, conditions_to_test.index(3), x_location]
                 ax.plot(sensory_intensities, cr_aud_off, color='C4',
                         marker='o', label='Bimodal Stimuli, Audio Feedback OFF')
             if 4 in conditions_to_test:
                 # #single visual response visual cortical feedback off
-                vi_vis_off = net_out[i_offset, :, 4, x_location]
+                vi_vis_off = net_out[i_offset, :, conditions_to_test.index(4), x_location]
                 ax.plot(sensory_intensities, vi_vis_off, color='C0',
                         marker='o', label='Visual Only, Sensory + Feedback')
             if 5 in conditions_to_test:
                 # single auditory response auditory cortical feedback off
-                au_aud_off = net_out[i_offset, :, 5, x_location]
+                au_aud_off = net_out[i_offset, :, conditions_to_test.index(5), x_location]
                 ax.plot(sensory_intensities, au_aud_off, color='C3',
                         marker='o', label='Audio Only, Sensory + Feedback')
 

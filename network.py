@@ -15,6 +15,10 @@ class Network(object):
         self.n_neurons_msi = n_neurons_msi
 
         # Internal Variables
+        self.sensory_input_a = 0
+        self.sensory_input_v = 0
+        self.cortical_input_a = 0
+        self.cortical_input_v = 0
 
         # Neuron Parameters
 
@@ -32,56 +36,90 @@ class Network(object):
         # state var r
         self.r = np.zeros((self.len_t, self.n_neurons_msi))
 
-    def create_inputs(self, stimuli_s_v, stimuli_s_a, stimuli_c_v, stimuli_c_a):
+    def create_inputs(self, stimuli_s_v, stimuli_s_a, stimuli_c_v, stimuli_c_a, gauss=True):
 
         sensory_input_v = np.zeros((self.len_t, self.n_neurons_msi))
         sensory_input_a = np.zeros((self.len_t, self.n_neurons_msi))
         cortical_input_v = np.zeros((self.len_t, self.n_neurons_msi))
         cortical_input_a = np.zeros((self.len_t, self.n_neurons_msi))
-        # Sensory Inputs
-        location = stimuli_s_v['loc']
-        onset = stimuli_s_v['onset']
-        duration = stimuli_s_v['duration']
-        sigma = stimuli_s_v['sigma']
-        weight = stimuli_s_v['weight']
-        x = np.arange(0, self.n_neurons_msi)
 
-        sensory_input_v[onset:onset + duration,
-                        :] = gauss_normalized(x, location[0], sigma=sigma) * weight
-        # normalize input
-#             sensory_input_v /= np.max(sensory_input_v)
+        # create a gaussian like input stimulus
+        if gauss:
+            # Sensory Inputs
+            location = stimuli_s_v['loc']
+            onset = stimuli_s_v['onset']
+            duration = stimuli_s_v['duration']
+            sigma = stimuli_s_v['sigma']
+            weight = stimuli_s_v['weight']
+            x = np.arange(0, self.n_neurons_msi)
 
-        location = stimuli_s_a['loc']
-        onset = stimuli_s_a['onset']
-        duration = stimuli_s_a['duration']
-        sigma = stimuli_s_a['sigma']
-        weight = stimuli_s_a['weight']
+            sensory_input_v[onset:onset + duration,
+                            :] = gauss_normalized(x, location[0], sigma=sigma) * weight
+            # normalize input
+    #             sensory_input_v /= np.max(sensory_input_v)
 
-        sensory_input_a[onset:onset + duration,
-                        :] = gauss_normalized(x, location[0], sigma=sigma) * weight
-#             sensory_input_a /= np.max(sensory_input_a)
+            location = stimuli_s_a['loc']
+            onset = stimuli_s_a['onset']
+            duration = stimuli_s_a['duration']
+            sigma = stimuli_s_a['sigma']
+            weight = stimuli_s_a['weight']
 
-        location = stimuli_c_v['loc']
-        onset = stimuli_c_v['onset']
-        duration = stimuli_c_v['duration']
-        sigma = stimuli_c_v['sigma']
-        weight = stimuli_c_v['weight']
+            sensory_input_a[onset:onset + duration,
+                            :] = gauss_normalized(x, location[0], sigma=sigma) * weight
+    #             sensory_input_a /= np.max(sensory_input_a)
 
-        cortical_input_v[onset:onset + duration,
-                         :] = gauss_normalized(x, location[0], sigma=sigma) * weight
-#             cortical_input_v /= np.max(cortical_input_v)
+            location = stimuli_c_v['loc']
+            onset = stimuli_c_v['onset']
+            duration = stimuli_c_v['duration']
+            sigma = stimuli_c_v['sigma']
+            weight = stimuli_c_v['weight']
 
-        # Cortical Inputs
-        location = stimuli_c_a['loc']
-        onset = stimuli_c_a['onset']
-        duration = stimuli_c_a['duration']
-        sigma = stimuli_c_a['sigma']
-        weight = stimuli_c_a['weight']
+            cortical_input_v[onset:onset + duration,
+                             :] = gauss_normalized(x, location[0], sigma=sigma) * weight
+    #             cortical_input_v /= np.max(cortical_input_v)
 
-        cortical_input_a[onset:onset + duration,
-                         :] = gauss_normalized(x, location[0], sigma=sigma) * weight
-#             cortical_input_a /= np.max(cortical_input_a)
+            # Cortical Inputs
+            location = stimuli_c_a['loc']
+            onset = stimuli_c_a['onset']
+            duration = stimuli_c_a['duration']
+            sigma = stimuli_c_a['sigma']
+            weight = stimuli_c_a['weight']
 
+            cortical_input_a[onset:onset + duration,
+                             :] = gauss_normalized(x, location[0], sigma=sigma) * weight
+    #             cortical_input_a /= np.max(cortical_input_a)
+        else:
+            # otherwise use dira stimulus
+            location = stimuli_s_v['loc']
+            onset = stimuli_s_v['onset']
+            duration = stimuli_s_v['duration']
+            sigma = stimuli_s_v['sigma']
+            weight = stimuli_s_v['weight']
+            sensory_input_v[:, location] = weight
+
+            location = stimuli_s_a['loc']
+            onset = stimuli_s_a['onset']
+            duration = stimuli_s_a['duration']
+            sigma = stimuli_s_a['sigma']
+            weight = stimuli_s_a['weight']
+            sensory_input_a[:, location] = weight
+
+            # Cortical Inputs
+            location = stimuli_c_v['loc']
+            onset = stimuli_c_v['onset']
+            duration = stimuli_c_v['duration']
+            sigma = stimuli_c_v['sigma']
+            weight = stimuli_c_v['weight']
+            cortical_input_v[:, location] = weight
+
+            location = stimuli_c_a['loc']
+            onset = stimuli_c_a['onset']
+            duration = stimuli_c_a['duration']
+            sigma = stimuli_c_a['sigma']
+            weight = stimuli_c_a['weight']
+            cortical_input_a[:, location] = weight
+
+        # check for correct dimensions
         assert sensory_input_v.shape == (
             self.len_t, self.n_neurons_msi), 'Input Dimension Mismatch'
         assert sensory_input_a.shape == (

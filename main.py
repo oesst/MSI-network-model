@@ -11,16 +11,16 @@ import pickle
 # %%
 
 # Use a unique name for each experiments
-exp_name = 'Inverse_Effectiveness'
+exp_name = 'Spatial_Principle'
 
 ########################################
 ######## Experiment PARAMETERS #########
 
 # set number of neurons in
-n_neurons_msi = 1
+n_neurons_msi = 5
 
 # set number of input intensity, all inputs need to have the same amount of intensities
-intensity_tests = 11
+intensity_tests = 5
 sensory_intensities = np.linspace(0, 1, intensity_tests)
 # define the sensory input properties (reliability of sensory signal is encoded in intensity and sigma)
 intensity_s_v = sensory_intensities
@@ -36,25 +36,25 @@ intensity_c_a = sensory_intensities
 #  4 : all auditory input (sensory, cortical), no visual
 #  5 : all visual input (sensory, cortical), no auditory
 #  6 : only auditory sensory input, both cortical
-conditions_to_test = [0, 1, 2, 3, 4, 5, 6]
+conditions_to_test = [0, 1, 4, 5]
 
 # defines the stimuli with location (x,y), onset, duration
 s_onset_temp = 10
-s_onset_spatial = 0
-s_spatial_offsets = np.arange(0, 1, 2)
+s_onset_spatial = 2
+s_spatial_offsets = np.arange(1, 2, 2)
 
 
 # define the uncertaintiy of the inputs
-sigma_s_v = 1
-sigma_s_a = 1
-sigma_c_v = 1
-sigma_c_a = 1
+sigma_s_v = 2
+sigma_s_a = 2
+sigma_c_v = 2
+sigma_c_a = 2
 
 readout_time = 3950
 
 
 # Create the network and initialize all internal vars
-net = network.Network('Inverse Effectiveness', n_neurons_msi=n_neurons_msi)
+net = network.Network(exp_name, n_neurons_msi=n_neurons_msi)
 
 # %% Create directory according to exp name
 
@@ -152,7 +152,7 @@ if not skip_simulation:
 
                 # Create inputs
                 sens_in_v, sens_in_a, cor_in_v, cor_in_a = net.create_inputs(
-                    stimuli_s_v, stimuli_s_a, stimuli_c_v, stimuli_c_a)
+                    stimuli_s_v, stimuli_s_a, stimuli_c_v, stimuli_c_a, gauss=True)
 
                 # run the network with random locations
                 r, act, p_pool, p_sensory, q_fb, q_s2_v, q_s2_a, q_s1_v, q_s1_a = net.run(
@@ -192,8 +192,8 @@ else:
 # %%
 
 condition = 1
-inten = 10
+inten = 3
 
 plter = plotter.Plotter(exp_dir, save_figs=False)
-ax = plter.plot_normal_response(net_out, 0, sensory_input_v[:, inten, condition, readout_time, :], sensory_input_a[:,
+ax = plter.plot_normal_response(net_out, s_onset_spatial, sensory_input_v[:, inten, condition, readout_time, :], sensory_input_a[:,
                                                                                                        inten, condition, readout_time, :], s_spatial_offsets, sensory_intensities, conditions_to_test)
