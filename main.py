@@ -17,10 +17,10 @@ exp_name = 'Spatial_Principle'
 ######## Experiment PARAMETERS #########
 
 # set number of neurons in
-n_neurons_msi = 5
+n_neurons_msi = 20
 
 # set number of input intensity, all inputs need to have the same amount of intensities
-intensity_tests = 5
+intensity_tests = 11
 sensory_intensities = np.linspace(0, 1, intensity_tests)
 # define the sensory input properties (reliability of sensory signal is encoded in intensity and sigma)
 intensity_s_v = sensory_intensities
@@ -36,12 +36,12 @@ intensity_c_a = sensory_intensities
 #  4 : all auditory input (sensory, cortical), no visual
 #  5 : all visual input (sensory, cortical), no auditory
 #  6 : only auditory sensory input, both cortical
-conditions_to_test = [0, 1, 4, 5]
+conditions_to_test = [0, 1, 2, 3, 4, 5, 6]
 
 # defines the stimuli with location (x,y), onset, duration
 s_onset_temp = 10
-s_onset_spatial = 2
-s_spatial_offsets = np.arange(1, 2, 2)
+s_onset_spatial = 8
+s_spatial_offsets = np.arange(0, 12, 2)
 
 
 # define the uncertaintiy of the inputs
