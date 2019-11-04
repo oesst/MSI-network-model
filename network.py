@@ -185,9 +185,9 @@ class Network(object):
             x_kernel = np.arange(self.n_neurons_msi)
             for i_neurons in range(self.n_neurons_msi):
 
-                kernel = gauss_normalized(x_kernel, i_neurons, 1.0)
-                kernel_mod_fb = gauss_normalized(x_kernel, i_neurons, 3.0)
-                kernel_pool = gauss_normalized(x_kernel, i_neurons, 1.0)
+                kernel = gauss_normalized(x_kernel, i_neurons, 0.025)
+                kernel_mod_fb = gauss_normalized(x_kernel, i_neurons, 0.025)
+                kernel_pool = gauss_normalized(x_kernel, i_neurons, 0.025)
 
                 # calculate the sensory inter neuron inputs and acti_neuronsation
                 excitatory_in = sensory_input_a[t, i_neurons] * \

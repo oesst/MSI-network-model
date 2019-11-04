@@ -1,5 +1,6 @@
 """ This simulation is adapted from main for Bayesian inference analysis """
 
+from scipy.signal import find_peaks
 import matplotlib.pyplot as plt
 import plotter
 import network
@@ -12,7 +13,7 @@ import numpy as np
 # %%
 
 # Use a unique name for each experiments
-exp_name = 'Bayesian_Inference'
+exp_name = 'Bayesian_Inference_Dirac_Kernels'
 
 ########################################
 ######## Experiment PARAMETERS #########
@@ -33,10 +34,10 @@ conditions_to_test = [0, 1]
 
 # defines the stimuli with location (x,y), onset, duration
 
-s_a_mean = 10
+s_a_mean = 12
 s_v_mean = 8
 s_a_var = 1.5
-s_v_var = 1
+s_v_var = 1.0
 s_a_intensity = 0.7
 s_v_intensity = 0.7
 
@@ -53,7 +54,7 @@ sigma_c_a = 2
 readout_time = 3950
 
 # define how many times we draw from the distribution
-n_draws = 400
+n_draws = 100
 
 # Create the network and initialize all internal vars
 net = network.Network(exp_name, n_neurons_msi=n_neurons_msi)
@@ -174,56 +175,63 @@ if not skip_simulation:
             # save the data
             net_out[i_draw, i_condi, :] = act[readout_time, :]
             r_all[i_draw, i_condi, :, :] = r
-            p_pool_all[i_draw, i_condi, :, :] = p_pool
-            p_sensory_all[i_draw, i_condi, :, :] = p_sensory
-            q_fb_all[i_draw, i_condi, :, :] = q_fb
-            q_s2_v_all[i_draw, i_condi, :, :] = q_s2_v
-            q_s2_a_all[i_draw, i_condi, :, :] = q_s2_a
-            q_s1_v_all[i_draw, i_condi, :, :] = q_s1_v
-            q_s1_a_all[i_draw, i_condi, :, :] = q_s1_a
+            # p_pool_all[i_draw, i_condi, :, :] = p_pool
+            # p_sensory_all[i_draw, i_condi, :, :] = p_sensory
+            # q_fb_all[i_draw, i_condi, :, :] = q_fb
+            # q_s2_v_all[i_draw, i_condi, :, :] = q_s2_v
+            # q_s2_a_all[i_draw, i_condi, :, :] = q_s2_a
+            # q_s1_v_all[i_draw, i_condi, :, :] = q_s1_v
+            # q_s1_a_all[i_draw, i_condi, :, :] = q_s1_a
             sensory_input_v[i_draw, i_condi, :, :] = sens_in_v
             sensory_input_a[i_draw, i_condi, :, :] = sens_in_a
-            cortical_input_v[i_draw, i_condi, :, :] = cor_in_v
-            cortical_input_a[i_draw, i_condi, :, :] = cor_in_a
+            # cortical_input_v[i_draw, i_condi, :, :] = cor_in_v
+            # cortical_input_a[i_draw, i_condi, :, :] = cor_in_a
 
             print('Draw ' + str(i_draw + 1) + ' of ' + str(n_draws) + ' Condition : ' +
                   str(i_condi + 1) + ' of ' + str(len(conditions_to_test)))
+
+# %%
 ###### Save outputs ######
 
 results_file = os.path.join(exp_dir, 'results.pkl')
 if not os.path.exists(results_file):
     with open(results_file, 'wb') as f:
-        pickle.dump([net_out, r_all, p_pool_all, p_sensory_all, q_fb_all, q_s2_v_all, q_s2_a_all,
-                     q_s1_v_all, q_s1_a_all, sensory_input_v, sensory_input_a, cortical_input_v, cortical_input_a], f)
+        pickle.dump([net_out, r_all, sensory_input_v, sensory_input_a], f)
 else:
     with open(results_file, 'rb') as f:
-        net_out, r_all, p_pool_all, p_sensory_all, q_fb_all, q_s2_v_all, q_s2_a_all, q_s1_v_all, q_s1_a_all, sensory_input_v, sensory_input_a, cortical_input_v, cortical_input_a = pickle.load(
+        net_out, r_all, sensory_input_v, sensory_input_a = pickle.load(
             f)
 
 
 ###### Plotting ######
 # %%
-# plter = plotter.Plotter(exp_dir, save_figs=False)
-#
-# fig = plt.figure(figsize=(10, 10))
-#
-# for i_draw in range(n_draws):
-#     ax = fig.add_subplot(2, n_draws, i_draw + 1)
-#
-#     ax.plot(np.arange(n_neurons_msi), np.squeeze(
-#         sensory_input_v[i_draw, 0, readout_time, :]), color='C0', marker='o', label='Visual Input')
-#     ax.plot(np.arange(n_neurons_msi), np.squeeze(
-#         sensory_input_a[i_draw, 0, readout_time, :]), color='C3', marker='o', label='Audio Input')
-#     ax.set_ylim([0, 1])
-#
-#     ax = fig.add_subplot(2, n_draws, i_draw + 1 + n_draws)
-#     ax.plot(np.arange(n_neurons_msi), net_out[i_draw, 0, :], color='black',
-#             marker='o', label='Cortical Feedback OFF')
-#     ax.plot(np.arange(n_neurons_msi),
-#             net_out[i_draw, 1, :], color='C1', marker='o', label='Cortical Feedback ON')
+
+fusion = np.zeros(n_draws).astype('bool')
+for i_draw in range(n_draws):
+    fusion[i_draw] = not (
+        len(find_peaks(np.squeeze(net_out[i_draw, 1, :]), distance=1)[0]) > 1)
+
+
+# find all modes of response (fb on)
+modes_response_fb_on = np.argmax(net_out[fusion, 1, :], 1)
+modes_response_fb_off = np.argmax(net_out[fusion, 0, :], 1)
+
+modes_input_a = np.argmax(sensory_input_a[fusion, 1, readout_time, :], 1)
+modes_input_v = np.argmax(sensory_input_v[fusion, 1, readout_time, :], 1)
+
+fig = plt.figure(figsize=(10, 10))
+plt.hist(modes_response_fb_on, bins=21, range=(0, 20), histtype='step')
+# plt.hist(modes_response_fb_off, bins=21, range=(0, 20), histtype='step')
+plt.hist(modes_input_a, bins=21, range=(0, 20), histtype='step')
+plt.hist(modes_input_v, bins=21, range=(0, 20), histtype='step')
+
+res_var = np.var(modes_response_fb_on)
+sens_a_var = np.var(modes_input_a)
+sens_v_var = np.var(modes_input_v)
+
+computed_var = (sens_a_var * sens_v_var) / (sens_a_var + sens_v_var)
+
+print('\nModel Response Variance: {0:.2f} \nComputed Variance   : {1:.2f}'.format(
+    res_var, computed_var))
 
 # %%
-
-a = np.random.normal(10, 1.5, 10000)
-plt.hist(a)
-plt.xlim([0, 20])
