@@ -36,7 +36,8 @@ class Network(object):
         # state var r
         self.r = np.zeros((self.len_t, self.n_neurons_msi))
 
-    def create_inputs(self, stimuli_s_v, stimuli_s_a, stimuli_c_v, stimuli_c_a, gauss=True):
+
+    def create_inputs(self, stimuli_s_v, stimuli_s_a, stimuli_c_v, stimuli_c_a,gauss=True):
 
         sensory_input_v = np.zeros((self.len_t, self.n_neurons_msi))
         sensory_input_a = np.zeros((self.len_t, self.n_neurons_msi))
@@ -136,7 +137,7 @@ class Network(object):
 
         return sensory_input_v, sensory_input_a, cortical_input_v, cortical_input_a
 
-    def run(self, condition_number):
+    def run(self, condition_number, dirac_kernels=False):
 
         # store the output
         r = np.zeros((self.len_t, self.n_neurons_msi))
@@ -185,9 +186,15 @@ class Network(object):
             x_kernel = np.arange(self.n_neurons_msi)
             for i_neurons in range(self.n_neurons_msi):
 
-                kernel = gauss_normalized(x_kernel, i_neurons, 0.025)
-                kernel_mod_fb = gauss_normalized(x_kernel, i_neurons, 0.025)
-                kernel_pool = gauss_normalized(x_kernel, i_neurons, 0.025)
+                if dirac_kernels:
+                    kernel = gauss_normalized(x_kernel, i_neurons, 0.025)
+                    kernel_mod_fb = gauss_normalized(x_kernel, i_neurons, 0.025)
+                    kernel_pool = gauss_normalized(x_kernel, i_neurons, 0.025)
+                else:
+                    kernel = gauss_normalized(x_kernel, i_neurons, 1.0)
+                    kernel_mod_fb = gauss_normalized(x_kernel, i_neurons, 3.0)
+                    kernel_pool = gauss_normalized(x_kernel, i_neurons, 1.0)
+
 
                 # calculate the sensory inter neuron inputs and acti_neuronsation
                 excitatory_in = sensory_input_a[t, i_neurons] * \

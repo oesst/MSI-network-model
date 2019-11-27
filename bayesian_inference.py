@@ -12,8 +12,12 @@ import numpy as np
 #
 # %%
 
+# do not use spatial convolution (set kernels supe small)
+no_spatial_conv = True
 # Use a unique name for each experiments
-exp_name = 'Bayesian_Inference_Dirac_Kernels'
+exp_name = 'Bayesian_Inference_Mod_test'
+if no_spatial_conv:
+    exp_name += '_Dirac_Kernels'
 
 ########################################
 ######## Experiment PARAMETERS #########
@@ -34,12 +38,12 @@ conditions_to_test = [0, 1]
 
 # defines the stimuli with location (x,y), onset, duration
 
-s_a_mean = 12
+s_a_mean = 10
 s_v_mean = 8
 s_a_var = 1.5
 s_v_var = 1.0
-s_a_intensity = 0.7
-s_v_intensity = 0.7
+s_a_intensity = 0.5
+s_v_intensity = 0.5
 
 
 s_onset_temp = 0
@@ -54,7 +58,7 @@ sigma_c_a = 2
 readout_time = 3950
 
 # define how many times we draw from the distribution
-n_draws = 100
+n_draws = 3
 
 # Create the network and initialize all internal vars
 net = network.Network(exp_name, n_neurons_msi=n_neurons_msi)
@@ -64,6 +68,10 @@ net = network.Network(exp_name, n_neurons_msi=n_neurons_msi)
 # create directory for results if it doesnt extist
 exp_name_neurons = exp_name + '_neurons_' + str(n_neurons_msi) + '_sigmas_' + str(sigma_s_v) + str(sigma_s_a) + str(
     sigma_c_v) + str(sigma_c_a) + '_mean_a_' + str(s_a_mean) + '_mean_v_' + str(s_v_mean) + '_var_a_' + str(s_a_var) + '_var_v_' + str(s_v_var) + '_intens_a_' + str(s_a_intensity) + '_intens_v_' + str(s_v_intensity) + '_draws_' + str(n_draws)
+
+
+# exp_dir = path = os.path.join(os.getcwd(), 'Results')
+
 exp_dir = path = os.path.join(os.getcwd(), 'Results')
 # create result directory if it doesnt exists
 if not os.path.exists(exp_dir):
@@ -82,7 +90,7 @@ else:
     os.mkdir(exp_dir)
 
     # create a file with all parameters
-    with open(os.path.join(exp_dir, exp_name_neurons), 'w+') as f:  # Python 3: open(..., 'wb')
+    with open(os.path.join(exp_dir, exp_name_neurons + '.txt',), 'w+') as f:  # Python 3: open(..., 'wb')
         f.write(exp_name + '\n \n')
         f.write('Audio Stimulus Mean  : ' + str(s_a_mean) + '\n')
         f.write('Audio Stimulus Variance  : ' + str(s_a_var) + '\n')
@@ -170,14 +178,14 @@ if not skip_simulation:
 
             # run the network with random locations
             r, act, p_pool, p_sensory, q_fb, q_s2_v, q_s2_a, q_s1_v, q_s1_a = net.run(
-                i_condi)
+                i_condi, dirac_kernels=no_spatial_conv)
 
             # save the data
             net_out[i_draw, i_condi, :] = act[readout_time, :]
             r_all[i_draw, i_condi, :, :] = r
             # p_pool_all[i_draw, i_condi, :, :] = p_pool
             # p_sensory_all[i_draw, i_condi, :, :] = p_sensory
-            # q_fb_all[i_draw, i_condi, :, :] = q_fb
+            q_fb_all[i_draw, i_condi, :, :] = q_fb
             # q_s2_v_all[i_draw, i_condi, :, :] = q_s2_v
             # q_s2_a_all[i_draw, i_condi, :, :] = q_s2_a
             # q_s1_v_all[i_draw, i_condi, :, :] = q_s1_v
@@ -212,26 +220,48 @@ for i_draw in range(n_draws):
         len(find_peaks(np.squeeze(net_out[i_draw, 1, :]), distance=1)[0]) > 1)
 
 
-# find all modes of response (fb on)
+# find all modes of response
 modes_response_fb_on = np.argmax(net_out[fusion, 1, :], 1)
 modes_response_fb_off = np.argmax(net_out[fusion, 0, :], 1)
 
+# find all modes of inputs
 modes_input_a = np.argmax(sensory_input_a[fusion, 1, readout_time, :], 1)
 modes_input_v = np.argmax(sensory_input_v[fusion, 1, readout_time, :], 1)
 
 fig = plt.figure(figsize=(10, 10))
-plt.hist(modes_response_fb_on, bins=21, range=(0, 20), histtype='step')
-# plt.hist(modes_response_fb_off, bins=21, range=(0, 20), histtype='step')
+# plot the stuff
+plt.hist(modes_response_fb_on, bins=21, range=(0, 20), alpha=0.5)
+plt.hist(modes_response_fb_off, bins=21, range=(
+    0, 20), histtype='step', linestyle=('dashed'))
 plt.hist(modes_input_a, bins=21, range=(0, 20), histtype='step')
 plt.hist(modes_input_v, bins=21, range=(0, 20), histtype='step')
 
-res_var = np.var(modes_response_fb_on)
+# caluclate means and vars from response
+res_mean_fb_off = np.argmax(np.histogram(
+    modes_response_fb_off, bins=21, range=(0, 20))[0])
+res_mean_fb_on = np.argmax(np.histogram(
+    modes_response_fb_on, bins=21, range=(0, 20))[0])
+res_var_fb_off = np.var(modes_response_fb_off)
+res_var_fb_on = np.var(modes_response_fb_on)
 sens_a_var = np.var(modes_input_a)
 sens_v_var = np.var(modes_input_v)
-
+# calculate means and vars from input
+computed_mean = np.argmax(np.mean(
+    sensory_input_a[fusion, 1, readout_time, :] * sensory_input_v[fusion, 1, readout_time, :], 0))
 computed_var = (sens_a_var * sens_v_var) / (sens_a_var + sens_v_var)
 
-print('\nModel Response Variance: {0:.2f} \nComputed Variance   : {1:.2f}'.format(
-    res_var, computed_var))
+print('\nModel Response Mean (Cort On): {0:.2f} \nModel Response Mean (Cort Off): {1:.2f} \nComputed Mean   : {2:.2f}'.format(
+    res_mean_fb_on, res_mean_fb_off, computed_mean))
+print('\nModel Response Variance (Cort On): {0:.2f} \nModel Response Variance (Cort Off): {1:.2f} \nComputed Variance   : {2:.2f}'.format(
+    res_var_fb_on, res_var_fb_off, computed_var))
+
+# save stuff
+results_file = os.path.join(exp_dir, 'means_vars.pkl')
+with open(results_file, 'wb') as f:
+    pickle.dump([res_mean_fb_on, res_var_fb_on, computed_mean,
+                 computed_var, res_mean_fb_off, res_var_fb_off], f)
+
 
 # %%
+
+q_fb_all[:, :, 3950, 8]
